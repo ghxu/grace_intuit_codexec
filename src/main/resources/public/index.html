@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Invoice</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+    <style>
+        body {
+            background-color: #EEE;
+        }
+
+        .container {
+            background: white;
+            padding: 3em;
+            margin-top: 20px;
+            border-radius: 15px;
+            border: 1px solid #bbbbbb;
+            box-shadow: 3px 3px 3px #aaa;
+        }
+
+        h1 {
+            margin-bottom: 50px;
+        }
+
+        @keyframes fadeIn {
+            0% {opacity: 0;}
+            100% {opacity: 1;}
+        }
+        @keyframes fadeOut {
+            0% {opacity: 1;}
+            100% {opacity: 0;}
+        }
+        .hidden {
+            opacity: 0;
+        }
+        .animated {
+            animation-duration: 2s;
+            animation-fill-mode: both;
+        }
+        .fade-in {
+            animation-name: fadeIn;
+        }
+        .fade-out {
+            animation-name: fadeOut;
+        }
+        .total {
+            font-weight: bolder;
+            margin-bottom: 20px;
+        }
+    </style>
+
+  </head>
+  <body>
+    <div class="container">
+        <h1>Invoice</h1>
+
+        <form class="expense_form" action="" method="post" name="expense_form">
+            <div class="form-group row">
+                <label for="name" class="col-sm-2 col-form-label">Name</label>
+                <input type="text" class="col-sm-10" id="name" placeholder="Enter name">
+            </div>
+            <div class="form-group row">
+                <label for="email" class="col-sm-2 col-form-label">Email</label>
+                <input type="email" class="col-sm-10" id="email" placeholder="Enter email">
+            </div>
+            <div class="form-group row">
+                <label for="dueDate" class="col-sm-2 col-form-label">Due Date</label>
+                <input class="col-sm-10" id="date" name="date" placeholder="MM/DD/YYY" type="date" style='border: solid 1px #EEEEEE'>
+            </div>
+
+            <div class='all_expenses row'>
+            </div>
+            <div class="row expense_entry expense_template" style="display: none; margin-left: 0">
+                <div class="form-group col-sm-10">
+                    <label for="description" class="col-form-label">Description</label>
+                    <input class="col-sm-12 description" placeholder="Description" type="text"/>
+                </div>
+                <div class="form-group col-sm-2">
+                    <label for="amount" class="col-form-label">Amount</label>
+                    <input class="col-sm-12 amount" placeholder="Amount" type="text"/>
+                </div>
+            </div>
+            <button class="row btn btn-primary add_expense" type="submit" style="margin-left: 0">+</button>
+
+            <div class="row total justify-content-end">
+                <div class="col-form-label col-sm-2">Total</div>
+                <div class="dollar col-form-label">$</div>
+                <div class="col-form-label amount">0.00</div>
+            </div>
+
+            <div class="row total justify-content-end">
+                <button type="submit" class="btn btn-secondary reset" style="margin-right: 20px">Reset</button>
+                <button type="submit" class="btn btn-success submit">Submit</button>
+            </div>
+        </form>
+
+        <div class="alert alert-success alert-dismissible animated hidden" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <strong>Done!</strong> You successfully saved the expense report.
+        </div>
+
+        <div class="alert alert-danger alert-dismissible animated hidden" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <strong>Failed!</strong> Something has gone wrongß.
+        </div>
+
+    </div>
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script>
+    <!-- Optional JavaScript -->
+    <script>
+        var DATA_KEY = 'invoice_data';
+
+        $(document).ready(function() {
+            loadData();
+            updateTotal();
+            $('.all_expenses').on('change', '.expense_entry', updateTotal);
+            $('.btn.submit').click(submitForm);
+            $('.btn.reset').click(resetData);
+        });
+
+        var $expenseTemplate = $(".expense_template");
+        var $allExpenses = $("form .all_expenses");
+
+        // Prevent the form submission
+        $('.expense_form').submit( function(e) {
+            e.preventDefault();
+        });
+
+        // Add new expense entry
+        $('.add_expense').click(function() {
+            appendNewExpense();
+        });
+
+        function resetData() {
+            localStorage.removeItem(DATA_KEY);
+            loadData();
+        }
+
+        function appendNewExpense(item) {
+            var $newEntry = $expenseTemplate.clone();
+            $newEntry.css('display', 'flex');
+            if (item) {
+                $newEntry.find('input.amount').val(item.amount);
+                $newEntry.find('input.description').val(item.description);
+            }
+            $allExpenses.append($newEntry);
+        }
+
+        /**
+         * loadData
+         *
+         * Load data from localStorage, and initialize the UI with the stored data.
+         */
+        function loadData() {
+            var defaultData = {
+                name: '',
+                email: '',
+                date: '',
+                lineItems: [{
+                    description: '',
+                    amount: ''
+                }]
+            };
+            var rawData = localStorage.getItem(DATA_KEY);
+            var json = rawData ? JSON.parse(rawData) : defaultData;
+
+            $('#name').val(json.name);
+            $('#email').val(json.email);
+            $('#date').val(json.dueDate);
+
+            $allExpenses.empty();
+            json.lineItems.forEach( function(item) {
+                appendNewExpense(item);
+            });
+        }
+
+        var alertTimer = null;
+        function submitForm() {
+            var json = {
+                name: $('#name').val(),
+                email: $('#email').val(),
+                dueDate: $('#date').val()
+            };
+
+            var lineItems = [];
+            $("form .expense_entry").each(function() {
+                var $node = $(this);
+                var item = {
+                    description: $node.find('input.description').val(),
+                    amount: $node.find('input.amount').val()
+                };
+                if (item.description && item.amount) {
+                    lineItems.push(item);
+                }
+            });
+
+            json.lineItems = lineItems;
+
+            localStorage.setItem(DATA_KEY, JSON.stringify(json));
+            loadData();
+            /*
+            $('.alert-success').removeClass('fade-out hidden').addClass('fade-in');
+            clearTimeout(alertTimer);
+            alertTimer = setTimeout(function() {
+                $('.alert-success').removeClass('fade-in').addClass('fade-out');
+            }, 3000);
+            */
+            $.ajax({
+                url: '/api/invoices',
+                type: 'POST',
+                data: JSON.stringify(json),
+                headers: { 
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json' 
+                },
+                dataType: 'json',
+                success: function(data, status, req) {
+                    $('.alert-success').removeClass('fade-out hidden').addClass('fade-in');
+                    clearTimeout(alertTimer);
+                    alertTimer = setTimeout(function() {
+                        $('.alert-success').removeClass('fade-in').addClass('fade-out');
+                    }, 3000);
+                },
+                error: function(req, status, err) {
+                    $('.alert-danger').removeClass('fade-out hidden').addClass('fade-in');
+                    clearTimeout(alertTimer);
+                    alertTimer = setTimeout(function() {
+                        $('.alert-danger').removeClass('fade-in').addClass('fade-out');
+                    }, 3000);
+                }
+            })
+        }
+
+        function updateTotal() {
+            var total = 0;
+            $('.expense_entry input.amount').each(function() {
+                var a = parseFloat($(this).val());
+                if (!isNaN(a)) {
+                    total += a;
+                }
+            });
+            $('.amount').text(total.toFixed(2));
+        }
+
+    </script>
+  </body>
+</html>
+
+
