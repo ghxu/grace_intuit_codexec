@@ -8,6 +8,8 @@ It also implemented with following consideration are implemented:
 Requirement:
 Java 1.8+
 
+Frontend html-based invoice implementation is located under resources/public.
+
 Backend invoice service:
 
 How to run
@@ -21,7 +23,3 @@ On the local host, the service is located at http://localhost:8080/api/invoices
 How to test
 
 The service comes with a Postman collection (postman_test_collection.json), you could simply import it to Postman.
-
-Frontend html-based invoice implementation is located under resources.
-
-
